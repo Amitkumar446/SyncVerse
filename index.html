@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyncVerse - Futuristic Watch Party Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #8b5cf6;
+            --primary-pink: #ec4899;
+            --primary-blue: #3b82f6;
+            --neon-glow: 0 0 10px rgba(139,92,246,0.5), 0 0 20px rgba(139,92,246,0.3);
+            --glass-bg: rgba(15,15,30,0.75);
+            --glass-border: rgba(139,92,246,0.2);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0a14;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(15,15,30,0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.5); border-radius: 3px; }
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+        }
+        .neon-glow { box-shadow: var(--neon-glow); }
+        .neon-border { border: 1px solid rgba(139,92,246,0.5); box-shadow: var(--neon-glow); }
+        .gradient-text {
+            background: linear-gradient(90deg, var(--primary-purple), var(--primary-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-pink));
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(139,92,246,0.4); }
+        .btn-secondary {
+            background: rgba(139,92,246,0.1);
+            border: 1px solid rgba(139,92,246,0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover { background: rgba(139,92,246,0.2); transform: translateY(-1px); }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(239,68,68,0.3); }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(16,185,129,0.3); }
+        .loading-screen {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: #0a0a14;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .loading-screen.hidden { opacity:0; visibility:hidden; }
+        .loader {
+            width: 60px; height: 60px; border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: var(--primary-purple);
+            border-right-color: var(--primary-pink);
+            animation: spin 1s linear infinite; position: relative;
+        }
+        .loader::after {
+            content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+            width:40px; height:40px; border-radius:50%;
+            border: 3px solid transparent;
+            border-bottom-color: var(--primary-purple);
+            border-left-color: var(--primary-pink);
+            animation: spin 0.5s linear infinite reverse;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .video-container { position: relative; background: #000; border-radius: 12px; overflow: hidden; }
+        .video-controls {
+            position: absolute; bottom:0; left:0; right:0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 20px; opacity:0; transition: opacity 0.3s ease;
+        }
+        .video-container:hover .video-controls { opacity:1; }
+        .progress-bar {
+            height: 4px; background: rgba(255,255,255,0.2);
+            border-radius: 2px; cursor: pointer; margin-bottom: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-purple), var(--primary-pink));
+            border-radius: 2px; transition: width 0.1s;
+        }
+        .chat-message { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .neon-pulse { animation: neonPulse 2s infinite; }
+        @keyframes neonPulse {
+            0%,100% { box-shadow: 0 0 5px rgba(139,92,246,0.5), 0 0 10px rgba(139,92,246,0.3); }
+            50% { box-shadow: 0 0 15px rgba(139,92,246,0.8), 0 0 30px rgba(139,92,246,0.5); }
+        }
+        .mobile-menu { transform: translateX(-100%); transition: transform 0.3s ease; }
+        .mobile-menu.open { transform: translateX(0); }
+        .reaction { animation: floatUp 3s ease-out forwards; position: fixed; font-size: 2rem; z-index: 100; pointer-events: none; }
+        @keyframes floatUp {
+            0% { opacity:1; transform:translateY(0) scale(1); }
+            100% { opacity:0; transform:translateY(-150px) scale(1.5); }
+        }
+        .admin-panel { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(5,5,15,0.97); z-index:1000; overflow-y:auto; }
+        .admin-panel.active { display:block; }
+        .mobile-nav { display:none; }
+        @media (max-width: 768px) {
+            .desktop-sidebar { display:none; }
+            .right-sidebar { display:none; }
+            .mobile-nav { display:flex; }
+            .bottom-panels { flex-direction: column; }
+        }
+        .toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            padding: 12px 24px; border-radius: 12px; z-index: 2000;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+        }
+        @keyframes toastIn { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+        @keyframes toastOut { from { opacity:1; } to { opacity:0; transform:translateX(-50%) translateY(-20px); } }
+        .blocked-badge { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .unblocked-badge { background: rgba(16,185,129,0.2); color: #10b981; }
+        .admin-content-section { display: none; }
+        .admin-content-section.active { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+        <h1 class="font-orbitron text-2xl mt-6 gradient-text">SyncVerse</h1>
+        <p class="text-gray-500 mt-2 text-sm">Connecting to watch party...</p>
+    </div>
+
+    <!-- Main App -->
+    <div class="flex h-screen overflow-hidden" id="mainApp" style="display:none;">
+        <!-- Left Sidebar -->
+        <aside class="desktop-sidebar w-64 glass flex flex-col border-r border-purple-900/30 flex-shrink-0">
+            <div class="p-4 border-b border-purple-900/30">
+                <h1 class="font-orbitron text-xl font-bold gradient-text">SyncVerse</h1>
+                <p class="text-xs text-gray-500 mt-1">Watch Together, Anywhere</p>
+            </div>
+            <nav class="flex-1 overflow-y-auto p-4">
+                <ul class="space-y-1" id="navMenu">
+                    <li><a href="#" class="nav-link flex items-center p-3 rounded-lg bg-purple-900/20 text-purple-400" data-page="home"><i class="fas fa-home w-5 mr-3"></i><span>Home</span></a></li>
+                    <li><a href="#" class="nav-link flex items-center p-3 rounded-lg hover:bg-purple-900/20 transition-colors" data-page="trending"><i class="fas fa-fire w-5 mr-3"></i><span>Trending</span></a></li>
+                    <li><a href="#" class="nav-link flex items-center p-3 rounded-lg hover:bg-purple-900/20 transition-colors" data-page="rooms"><i class="fas fa-door-open w-5 mr-3"></i><span>My Rooms</span></a></li>
+                    <li><a href="#" class="nav-link flex items-center p-3 rounded-lg hover:bg-purple-900/20 transition-colors" data-page="bookmarks"><i class="fas fa-bookmark w-5 mr-3"></i><span>Bookmarks</span></a></li>
+                    <li><a href="#" class="nav-link flex items-center p-3 rounded-lg hover:bg-purple-900/20 transition-colors" data-page="history"><i class="fas fa-history w-5 mr-3"></i><span>History</span></a></li>
+                </ul>
+                <div class="mt-8">
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Categories</h3>
+                    <ul class="space-y-1">
+                        <li><a href="#" class="flex items-center p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-dragon w-5 mr-3 text-pink-500"></i><span>Anime</span></a></li>
+                        <li><a href="#" class="flex items-center p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-film w-5 mr-3 text-blue-500"></i><span>Movies</span></a></li>
+                        <li><a href="#" class="flex items-center p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-tv w-5 mr-3 text-green-500"></i><span>Live TV</span></a></li>
+                        <li><a href="#" class="flex items-center p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-gamepad w-5 mr-3 text-red-500"></i><span>Gaming</span></a></li>
+                        <li><a href="#" class="flex items-center p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-newspaper w-5 mr-3 text-yellow-500"></i><span>News</span></a></li>
+                        <li><a href="#" class="flex items-center p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-graduation-cap w-5 mr-3 text-indigo-500"></i><span>Education</span></a></li>
+                        <li><a href="#" class="flex items-center p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-football-ball w-5 mr-3 text-orange-500"></i><span>Sports</span></a></li>
+                    </ul>
+                </div>
+            </nav>
+            <div class="p-4 border-t border-purple-900/30">
+                <button id="createRoomBtn" class="w-full btn-primary text-white font-semibold py-2.5 rounded-lg neon-glow"><i class="fas fa-plus mr-2"></i>Create Room</button>
+                <div class="flex justify-between mt-4">
+                    <button class="p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-cog text-gray-400"></i></button>
+                    <button id="adminPanelBtn" class="p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-shield-alt text-gray-400"></i></button>
+                    <button id="logoutBtn" class="p-2 rounded-lg hover:bg-purple-900/20 transition-colors"><i class="fas fa-sign-out-alt text-gray-400"></i></button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navbar -->
+            <header class="glass border-b border-purple-900/30 px-4 py-3 flex-shrink-0">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <button id="mobileMenuBtn" class="md:hidden mr-3 p-2 rounded-lg hover:bg-purple-900/20"><i class="fas fa-bars text-gray-400"></i></button>
+                        <div class="relative">
+                            <input type="text" placeholder="Search videos, rooms, users..." class="bg-purple-900/10 border border-purple-900/30 rounded-full py-2 px-4 pl-10 w-48 md:w-80 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all text-sm">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 md:space-x-3">
+                        <button id="joinRoomNavBtn" class="hidden md:flex btn-secondary text-purple-400 py-1.5 px-3 rounded-full text-sm"><i class="fas fa-sign-in-alt mr-1"></i>Join Room</button>
+                        <button class="p-2 rounded-full hover:bg-purple-900/20 relative">
+                            <i class="fas fa-bell text-gray-400"></i>
+                            <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-pink-500 rounded-full"></span>
+                        </button>
+                        <div class="flex items-center cursor-pointer" id="userProfileBtn">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm mr-2" id="navAvatar">U</div>
+                            <span class="hidden md:block text-sm font-medium" id="navUserName">User</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="flex-1 flex overflow-hidden">
+                <!-- Main Player -->
+                <main class="flex-1 overflow-y-auto p-4" id="mainContent">
+                    <!-- Video Player -->
+                    <div class="video-container rounded-xl overflow-hidden mb-4">
+                        <div class="aspect-video bg-black relative" id="videoPlayer">
+                            <img src="https://picsum.photos/seed/kiminonawa/1280/720.jpg" alt="Video" class="w-full h-full object-cover" id="videoThumb">
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/30" id="playOverlay">
+                                <button id="playButton" class="w-16 h-16 rounded-full bg-purple-600/80 flex items-center justify-center hover:bg-purple-600 transition-colors neon-glow">
+                                    <i class="fas fa-play text-white text-xl ml-1" id="playIcon"></i>
+                                </button>
+                            </div>
+                            <div class="absolute top-4 left-4 flex items-center space-x-2">
+                                <span class="bg-purple-600/80 text-white text-xs px-2.5 py-1 rounded-full sync-indicator"><i class="fas fa-sync-alt mr-1"></i>SYNCED</span>
+                                <span class="bg-black/60 text-white text-xs px-2.5 py-1 rounded-full"><i class="fas fa-users mr-1"></i><span id="watchCount">6</span> watching</span>
+                            </div>
+                            <div class="video-controls">
+                                <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill" style="width:36%"></div></div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <button id="playPauseBtn" class="text-white hover:text-purple-400 transition-colors"><i class="fas fa-play" id="ctrlPlayIcon"></i></button>
+                                        <button class="text-white hover:text-purple-400 transition-colors"><i class="fas fa-forward"></i></button>
+                                        <div class="flex items-center">
+                                            <button id="volumeBtn" class="text-white hover:text-purple-400 transition-colors mr-2"><i class="fas fa-volume-up" id="volIcon"></i></button>
+                                            <div class="w-20 h-1 bg-gray-600 rounded-full overflow-hidden"><div class="w-3/4 h-full bg-purple-500 rounded-full" id="volBar"></div></div>
+                                        </div>
+                                        <span class="text-white text-sm" id="timeDisplay">42:17 / 1:54:23</span>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <button class="text-white hover:text-purple-400 transition-colors"><i class="fas fa-closed-captioning"></i></button>
+                                        <button class="text-white hover:text-purple-400 transition-colors"><i class="fas fa-cog"></i></button>
+                                        <button class="text-white hover:text-purple-400 transition-colors"><i class="fas fa-expand"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video Info -->
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-2" id="videoTitle">Your Name. (Kimi no Na wa.)</h2>
+                        <div class="flex flex-wrap items-center gap-2 mb-4">
+                            <span class="bg-purple-900/30 text-purple-400 text-xs px-3 py-1 rounded-full">Anime</span>
+                            <span class="bg-pink-900/30 text-pink-400 text-xs px-3 py-1 rounded-full">Romance</span>
+                            <span class="bg-blue-900/30 text-blue-400 text-xs px-3 py-1 rounded-full">Fantasy</span>
+                            <span class="bg-green-900/30 text-green-400 text-xs px-3 py-1 rounded-full">Drama</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button class="btn-secondary text-purple-400 py-2 px-4 rounded-lg text-sm"><i class="fas fa-plus mr-2"></i>Add to List</button>
+                            <button class="btn-secondary text-gray-400 py-2 px-4 rounded-lg text-sm"><i class="fas fa-share mr-2"></i>Share</button>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Panels -->
+                    <div class="bottom-panels grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <!-- Room Info -->
+                        <div class="glass rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-semibold">Room Info</h3>
+                                <span class="bg-green-900/30 text-green-400 text-xs px-2 py-1 rounded-full">Public</span>
+                            </div>
+                            <div class="mb-3">
+                                <h4 class="text-lg font-bold">Anime Night</h4>
+                                <p class="text-gray-400 text-sm">Room ID: #ANIME-2024</p>
+                            </div>
+                            <div class="flex items-center mb-4">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold mr-2">H</div>
+                                <div><p class="text-sm font-medium">HostUser</p><p class="text-xs text-gray-400">Room Creator</p></div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="flex-1 btn-primary text-white py-2 rounded-lg text-sm"><i class="fas fa-user-plus mr-1"></i>Invite</button>
+                                <button class="flex-1 btn-secondary text-red-400 py-2 rounded-lg text-sm"><i class="fas fa-sign-out-alt mr-1"></i>Leave</button>
+                            </div>
+                        </div>
+
+                        <!-- Online Users -->
+                        <div class="glass rounded-xl p-4">
+                            <h3 class="font-semibold mb-3">Online Users (<span id="onlineCount">6</span>)</h3>
+                            <div class="space-y-3 max-h-48 overflow-y-auto" id="onlineUsersList">
+                                <div class="flex items-center"><div class="relative mr-3"><div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">H</div><div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-black"></div></div><div class="flex-1"><p class="text-sm font-medium">HostUser</p><p class="text-xs text-purple-400">Host</p></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Live Chat -->
+                        <div class="glass rounded-xl p-4 flex flex-col">
+                            <h3 class="font-semibold mb-3">Live Chat</h3>
+                            <div class="flex-1 overflow-y-auto mb-3 max-h-48 space-y-3" id="chatMessages"></div>
+                            <div class="flex items-center">
+                                <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-purple-500" maxlength="500">
+                                <button id="sendChatBtn" class="ml-2 w-9 h-9 rounded-lg bg-purple-600 flex items-center justify-center hover:bg-purple-700 transition-colors"><i class="fas fa-paper-plane text-white text-sm"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- Right Sidebar -->
+                <aside class="right-sidebar w-64 glass border-l border-purple-900/30 flex flex-col flex-shrink-0">
+                    <div class="p-4 border-b border-purple-900/30">
+                        <h3 class="font-semibold mb-3">Select Source</h3>
+                        <div class="space-y-2 max-h-64 overflow-y-auto" id="sourcesList"></div>
+                        <button id="addCustomSourceBtn" class="w-full mt-3 btn-secondary text-purple-400 py-2 rounded-lg text-sm"><i class="fas fa-plus mr-2"></i>Add Custom Link</button>
+                    </div>
+                    <div class="p-4 border-b border-purple-900/30">
+                        <h3 class="font-semibold mb-3">Activity</h3>
+                        <div class="space-y-3" id="activityLog">
+                            <div class="flex items-center"><div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mr-3"><i class="fas fa-play text-green-500 text-xs"></i></div><div><p class="text-xs font-medium">Movie Started</p><p class="text-xs text-gray-400">2m ago</p></div></div>
+                            <div class="flex items-center"><div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center mr-3"><i class="fas fa-user-plus text-blue-500 text-xs"></i></div><div><p class="text-xs font-medium">User Joined</p><p class="text-xs text-gray-400">5m ago</p></div></div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold mb-3">Communication</h3>
+                        <div class="flex justify-center space-x-4">
+                            <button class="w-12 h-12 rounded-full bg-purple-900/20 border border-purple-900/30 flex items-center justify-center hover:bg-purple-900/40 transition-colors"><i class="fas fa-microphone text-purple-400"></i></button>
+                            <button class="w-12 h-12 rounded-full bg-purple-900/20 border border-purple-900/30 flex items-center justify-center hover:bg-purple-900/40 transition-colors"><i class="fas fa-video text-purple-400"></i></button>
+                            <button class="w-12 h-12 rounded-full bg-purple-900/20 border border-purple-900/30 flex items-center justify-center hover:bg-purple-900/40 transition-colors"><i class="fas fa-desktop text-purple-400"></i></button>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-xs text-gray-400 mb-2">Reactions</h4>
+                            <div class="flex justify-between">
+                                <button class="reaction-btn w-10 h-10 rounded-full bg-purple-900/20 flex items-center justify-center hover:bg-purple-900/40 transition-colors">😂</button>
+                                <button class="reaction-btn w-10 h-10 rounded-full bg-purple-900/20 flex items-center justify-center hover:bg-purple-900/40 transition-colors">😍</button>
+                                <button class="reaction-btn w-10 h-10 rounded-full bg-purple-900/20 flex items-center justify-center hover:bg-purple-900/40 transition-colors">😮</button>
+                                <button class="reaction-btn w-10 h-10 rounded-full bg-purple-900/20 flex items-center justify-center hover:bg-purple-900/40 transition-colors">😢</button>
+                                <button class="reaction-btn w-10 h-10 rounded-full bg-purple-900/20 flex items-center justify-center hover:bg-purple-900/40 transition-colors">👏</button>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Nav -->
+    <div class="mobile-nav fixed bottom-0 left-0 right-0 glass border-t border-purple-900/30 justify-around py-2 z-50" id="mobileNav" style="display:none;">
+        <button class="flex flex-col items-center p-2 text-purple-400"><i class="fas fa-home text-lg"></i><span class="text-xs mt-1">Home</span></button>
+        <button class="flex flex-col items-center p-2 text-gray-400"><i class="fas fa-search text-lg"></i><span class="text-xs mt-1">Search</span></button>
+        <button class="flex flex-col items-center p-2" id="mobileCreateBtn"><div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center -mt-6 neon-glow"><i class="fas fa-plus text-white text-lg"></i></div><span class="text-xs mt-1 text-gray-400">Create</span></button>
+        <button class="flex flex-col items-center p-2 text-gray-400"><i class="fas fa-comments text-lg"></i><span class="text-xs mt-1">Chat</span></button>
+        <button class="flex flex-col items-center p-2 text-gray-400"><i class="fas fa-user text-lg"></i><span class="text-xs mt-1">Profile</span></button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu fixed inset-0 z-50 bg-black/80" id="mobileMenu">
+        <div class="w-64 h-full glass">
+            <div class="p-4 border-b border-purple-900/30 flex justify-between items-center">
+                <h1 class="font-orbitron text-xl font-bold gradient-text">SyncVerse</h1>
+                <button id="closeMobileMenu" class="p-2 rounded-lg hover:bg-purple-900/20"><i class="fas fa-times text-gray-400"></i></button>
+            </div>
+            <nav class="p-4">
+                <ul class="space-y-1">
+                    <li><a href="#" class="flex items-center p-3 rounded-lg bg-purple-900/20 text-purple-400"><i class="fas fa-home w-5 mr-3"></i><span>Home</span></a></li>
+                    <li><a href="#" class="flex items-center p-3 rounded-lg hover:bg-purple-900/20"><i class="fas fa-fire w-5 mr-3"></i><span>Trending</span></a></li>
+                    <li><a href="#" class="flex items-center p-3 rounded-lg hover:bg-purple-900/20"><i class="fas fa-door-open w-5 mr-3"></i><span>My Rooms</span></a></li>
+                </ul>
+                <div class="mt-6 space-y-2">
+                    <button id="adminMobileBtn" class="w-full flex items-center p-3 rounded-lg hover:bg-purple-900/20 text-gray-400"><i class="fas fa-shield-alt w-5 mr-3"></i><span>Admin Panel</span></button>
+                    <button id="logoutMobileBtn" class="w-full flex items-center p-3 rounded-lg hover:bg-red-900/20 text-red-400"><i class="fas fa-sign-out-alt w-5 mr-3"></i><span>Logout</span></button>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 hidden" id="loginModal">
+        <div class="glass rounded-xl p-6 w-full max-w-md mx-4 neon-border">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-bold gradient-text font-orbitron">SyncVerse</h2>
+                    <p class="text-sm text-gray-400 mt-1">Sign in to continue</p>
+                </div>
+                <button id="closeLogin" class="p-2 rounded-lg hover:bg-purple-900/20"><i class="fas fa-times text-gray-400"></i></button>
+            </div>
+            <div class="space-y-4">
+                <button id="googleLoginBtn" class="w-full flex items-center justify-center bg-white text-gray-800 font-medium py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fab fa-google mr-3 text-red-500"></i>Sign in with Google
+                </button>
+                <div class="relative"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-700"></div></div><div class="relative flex justify-center text-sm"><span class="px-2 bg-black text-gray-400">or</span></div></div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com" class="w-full bg-purple-900/10 border border-purple-900/30 rounded-lg py-2.5 px-3 focus:outline-none focus:border-purple-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" class="w-full bg-purple-900/10 border border-purple-900/30 rounded-lg py-2.5 px-3 focus:outline-none focus:border-purple-500 text-sm">
+                </div>
+                <button id="emailLoginBtn" class="w-full btn-primary text-white font-semibold py-2.5 rounded-lg neon-glow">Sign In</button>
+                <p id="loginError" class="text-red-400 text-sm text-center hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Room Modal -->
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 hidden" id="createRoomModal">
+        <div class="glass rounded-xl p-6 w-full max-w-md mx-4 neon-border">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Create Watch Party</h2>
+                <button id="closeCreateRoom" class="p-2 rounded-lg hover:bg-purple-900/20"><i class="fas fa-times text-gray-400"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div><label class="block text-sm font-medium mb-1">Room Name</label><input type="text" id="roomNameInput" placeholder="e.g., Anime Night" class="w-full bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 focus:outline-none focus:border-purple-500 text-sm"></div>
+                <div><label class="block text-sm font-medium mb-1">Room Type</label><div class="flex space-x-4"><label class="flex items-center cursor-pointer"><input type="radio" name="roomType" value="public" checked class="mr-2 accent-purple-500"><span>Public</span></label><label class="flex items-center cursor-pointer"><input type="radio" name="roomType" value="private" class="mr-2 accent-purple-500"><span>Private</span></label></div></div>
+                <div id="passwordField" class="hidden"><label class="block text-sm font-medium mb-1">Password</label><input type="password" id="roomPassword" placeholder="Room password" class="w-full bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 focus:outline-none focus:border-purple-500 text-sm"></div>
+                <button id="submitCreateRoom" class="w-full btn-primary text-white font-semibold py-2.5 rounded-lg neon-glow">Create Room</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Room Modal -->
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 hidden" id="joinRoomModal">
+        <div class="glass rounded-xl p-6 w-full max-w-md mx-4 neon-border">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Join a Room</h2>
+                <button id="closeJoinRoom" class="p-2 rounded-lg hover:bg-purple-900/20"><i class="fas fa-times text-gray-400"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div><label class="block text-sm font-medium mb-1">Room Code / ID</label><input type="text" id="joinRoomCode" placeholder="e.g., ANIME-2024" class="w-full bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 focus:outline-none focus:border-purple-500 text-sm"></div>
+                <button id="submitJoinRoom" class="w-full btn-primary text-white font-semibold py-2.5 rounded-lg neon-glow">Join Room</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Custom Source Modal -->
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 hidden" id="customSourceModal">
+        <div class="glass rounded-xl p-6 w-full max-w-md mx-4 neon-border">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Add Custom Source</h2>
+                <button id="closeCustomSource" class="p-2 rounded-lg hover:bg-purple-900/20"><i class="fas fa-times text-gray-400"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div><label class="block text-sm font-medium mb-1">Source Name</label><input type="text" id="customSourceName" placeholder="e.g., MyServer" class="w-full bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 focus:outline-none focus:border-purple-500 text-sm"></div>
+                <div><label class="block text-sm font-medium mb-1">Embed URL</label><input type="text" id="customSourceUrl" placeholder="https://example.com/embed/..." class="w-full bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 focus:outline-none focus:border-purple-500 text-sm"></div>
+                <div><label class="block text-sm font-medium mb-1">Icon Color (hex)</label><input type="text" id="customSourceColor" placeholder="#8b5cf6" value="#8b5cf6" class="w-full bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 focus:outline-none focus:border-purple-500 text-sm"></div>
+                <button id="submitCustomSource" class="w-full btn-primary text-white font-semibold py-2.5 rounded-lg neon-glow">Add Source</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="p-4 md:p-8 max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold font-orbitron gradient-text">Admin Dashboard</h1>
+                    <p class="text-gray-400 text-sm mt-1">Manage your SyncVerse platform</p>
+                </div>
+                <button id="closeAdminPanel" class="p-2 rounded-lg hover:bg-purple-900/20 glass"><i class="fas fa-times text-gray-400"></i></button>
+            </div>
+
+            <!-- Admin Tabs -->
+            <div class="flex overflow-x-auto pb-4 mb-6 space-x-3">
+                <button class="admin-tab px-4 py-2 rounded-lg bg-purple-900/20 text-purple-400 whitespace-nowrap text-sm font-medium" data-tab="dashboard"><i class="fas fa-tachometer-alt mr-2"></i>Dashboard</button>
+                <button class="admin-tab px-4 py-2 rounded-lg hover:bg-purple-900/20 text-gray-400 whitespace-nowrap text-sm" data-tab="users"><i class="fas fa-users mr-2"></i>Users</button>
+                <button class="admin-tab px-4 py-2 rounded-lg hover:bg-purple-900/20 text-gray-400 whitespace-nowrap text-sm" data-tab="sources"><i class="fas fa-link mr-2"></i>Sources</button>
+                <button class="admin-tab px-4 py-2 rounded-lg hover:bg-purple-900/20 text-gray-400 whitespace-nowrap text-sm" data-tab="rooms"><i class="fas fa-door-open mr-2"></i>Rooms</button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div class="admin-content-section active" id="tab-dashboard">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="glass rounded-xl p-4"><div class="flex items-center justify-between mb-2"><span class="text-gray-400 text-sm">Total Users</span><i class="fas fa-users text-purple-400"></i></div><p class="text-2xl font-bold" id="statUsers">0</p></div>
+                    <div class="glass rounded-xl p-4"><div class="flex items-center justify-between mb-2"><span class="text-gray-400 text-sm">Active Rooms</span><i class="fas fa-door-open text-blue-400"></i></div><p class="text-2xl font-bold" id="statRooms">0</p></div>
+                    <div class="glass rounded-xl p-4"><div class="flex items-center justify-between mb-2"><span class="text-gray-400 text-sm">Sources</span><i class="fas fa-link text-pink-400"></i></div><p class="text-2xl font-bold" id="statSources">0</p></div>
+                    <div class="glass rounded-xl p-4"><div class="flex items-center justify-between mb-2"><span class="text-gray-400 text-sm">Blocked Users</span><i class="fas fa-ban text-red-400"></i></div><p class="text-2xl font-bold" id="statBlocked">0</p></div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="admin-content-section" id="tab-users">
+                <div class="glass rounded-xl p-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                        <h3 class="font-semibold">All Users</h3>
+                        <input type="text" id="userSearchInput" placeholder="Search users..." class="bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-purple-500 w-full sm:w-64">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead><tr class="text-left text-gray-400 text-xs uppercase tracking-wider border-b border-gray-800"><th class="pb-3 font-medium">User</th><th class="pb-3 font-medium">Email</th><th class="pb-3 font-medium">Status</th><th class="pb-3 font-medium">Block Status</th><th class="pb-3 font-medium">Joined</th><th class="pb-3 font-medium">Actions</th></tr></thead>
+                            <tbody id="usersTableBody" class="divide-y divide-gray-800/50"></tbody>
+                        </table>
+                    </div>
+                    <p id="noUsersMsg" class="text-gray-500 text-center py-8 hidden">No users found</p>
+                </div>
+            </div>
+
+            <!-- Sources Tab -->
+            <div class="admin-content-section" id="tab-sources">
+                <div class="glass rounded-xl p-4 mb-4">
+                    <h3 class="font-semibold mb-4">Add New Source</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        <input type="text" id="adminSourceName" placeholder="Source Name" class="bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 focus:outline-none focus:border-purple-500 text-sm">
+                        <input type="text" id="adminSourceUrl" placeholder="Embed URL" class="bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 focus:outline-none focus:border-purple-500 text-sm">
+                        <input type="text" id="adminSourceColor" placeholder="Color hex" value="#8b5cf6" class="bg-purple-900/10 border border-purple-900/30 rounded-lg py-2 px-3 focus:outline-none focus:border-purple-500 text-sm">
+                        <button id="adminAddSourceBtn" class="btn-primary text-white py-2 rounded-lg text-sm font-medium"><i class="fas fa-plus mr-1"></i>Add Source</button>
+                    </div>
+                </div>
+                <div class="glass rounded-xl p-4">
+                    <h3 class="font-semibold mb-4">All Sources</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="adminSourcesGrid"></div>
+                    <p id="noSourcesMsg" class="text-gray-500 text-center py-8 hidden">No sources added yet</p>
+                </div>
+            </div>
+
+            <!-- Rooms Tab -->
+            <div class="admin-content-section" id="tab-rooms">
+                <div class="glass rounded-xl p-4">
+                    <h3 class="font-semibold mb-4">Active Rooms</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead><tr class="text-left text-gray-400 text-xs uppercase tracking-wider border-b border-gray-800"><th class="pb-3 font-medium">Room Name</th><th class="pb-3 font-medium">Creator</th><th class="pb-3 font-medium">Type</th><th class="pb-3 font-medium">Users</th><th class="pb-3 font-medium">Actions</th></tr></thead>
+                            <tbody id="roomsTableBody" class="divide-y divide-gray-800/50"></tbody>
+                        </table>
+                    </div>
+                    <p id="noRoomsMsg" class="text-gray-500 text-center py-8 hidden">No active rooms</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+    // ===================== FIREBASE CONFIG =====================
+    const firebaseConfig = {
+        apiKey: "AIzaSyCLSR9dIxu4LRBPm3yO79vxPxFyhplH4ns",
+        authDomain: "syncverse-c11e9.firebaseapp.com",
+        databaseURL: "https://syncverse-c11e9-default-rtdb.firebaseio.com",
+        projectId: "syncverse-c11e9",
+        storageBucket: "syncverse-c11e9.firebasestorage.app",
+        messagingSenderId: "57320097701",
+        appId: "1:57320097701:web:89e98e2e93b61c93dc8a4c",
+        measurementId: "G-B93T4TDRP2"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // ===================== GLOBALS =====================
+    let currentUser = null;
+    let currentRoomId = null;
+    let isPlaying = false;
+    let isMuted = false;
+    const colors = ['from-purple-500 to-pink-500','from-blue-500 to-purple-500','from-pink-500 to-red-500','from-green-500 to-teal-500','from-yellow-500 to-orange-500','from-indigo-500 to-blue-500','from-red-500 to-pink-500','from-cyan-500 to-blue-500'];
+
+    function getInitial(name) { return name ? name.charAt(0).toUpperCase() : '?'; }
+    function getColor(uid) { let h=0; for(let i=0;i<uid.length;i++) h=uid.charCodeAt(i)+((h<<5)-h); return colors[Math.abs(h)%colors.length]; }
+    function timeAgo(ts) {
+        if(!ts) return '';
+        const s=Math.floor((Date.now()-ts)/1000);
+        if(s<60) return 'Just now';
+        if(s<3600) return Math.floor(s/60)+'m ago';
+        if(s<86400) return Math.floor(s/3600)+'h ago';
+        return new Date(ts).toLocaleDateString();
+    }
+
+    // ===================== TOAST =====================
+    function showToast(msg, type='success') {
+        const t = document.createElement('div');
+        t.className = `toast glass text-sm font-medium ${type==='success'?'text-green-400 border border-green-900/50':type==='error'?'text-red-400 border border-red-900/50':'text-purple-400 border border-purple-900/50'}`;
+        t.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':type==='error'?'fa-exclamation-circle':'fa-info-circle'} mr-2"></i>${msg}`;
+        document.getElementById('toastContainer').appendChild(t);
+        setTimeout(()=>t.remove(), 3000);
+    }
+
+    // ===================== LOADING SCREEN =====================
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }, 1200);
+    });
+
+    // ===================== AUTH STATE =====================
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('mainApp').style.display = 'flex';
+            updateNavProfile();
+            saveUserToDB(user);
+            loadSources();
+            listenSources();
+            listenUsers();
+            listenRooms();
+            loadChat();
+        } else {
+            currentUser = null;
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+    });
+
+    function updateNavProfile() {
+        if (!currentUser) return;
+        document.getElementById('navAvatar').textContent = getInitial(currentUser.displayName || currentUser.email);
+        document.getElementById('navUserName').textContent = currentUser.displayName || currentUser.email.split('@')[0];
+    }
+
+    function saveUserToDB(user) {
+        db.ref('users/' + user.uid).once('value').then(snap => {
+            if (!snap.exists()) {
+                db.ref('users/' + user.uid).set({
+                    name: user.displayName || user.email.split('@')[0],
+                    email: user.email || '',
+                    photoURL: user.photoURL || '',
+                    role: 'user',
+                    blocked: false,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP,
+                    online: true
+                });
+            } else {
+                db.ref('users/' + user.uid).update({
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP,
+                    online: true
+                });
+            }
+        });
+        // On disconnect
+        db.ref('users/' + user.uid + '/online').onDisconnect().set(false);
+    }
+
+    // ===================== LOGIN =====================
+    document.getElementById('googleLoginBtn').addEventListener('click', () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(e => {
+            document.getElementById('loginError').textContent = e.message;
+            document.getElementById('loginError').classList.remove('hidden');
+        });
+    });
+    document.getElementById('emailLoginBtn').addEventListener('click', () => {
+        const email = document.getElementById('loginEmail').value.trim();
+        const pass = document.getElementById('loginPassword').value;
+        if (!email || !pass) { showToast('Please fill all fields','error'); return; }
+        auth.signInWithEmailAndPassword(email, pass).catch(e => {
+            document.getElementById('loginError').textContent = e.message;
+            document.getElementById('loginError').classList.remove('hidden');
+        });
+    });
+    document.getElementById('closeLogin').addEventListener('click', () => document.getElementById('loginModal').classList.add('hidden'));
+    document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+    document.getElementById('logoutMobileBtn')?.addEventListener('click', () => { auth.signOut(); document.getElementById('mobileMenu').classList.remove('open'); });
+
+    // ===================== MOBILE MENU =====================
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => document.getElementById('mobileMenu').classList.add('open'));
+    document.getElementById('closeMobileMenu').addEventListener('click', () => document.getElementById('mobileMenu').classList.remove('open'));
+
+    // ===================== MODALS =====================
+    // Create Room
+    document.getElementById('createRoomBtn').addEventListener('click', () => document.getElementById('createRoomModal').classList.remove('hidden'));
+    document.getElementById('mobileCreateBtn')?.addEventListener('click', () => { document.getElementById('mobileMenu').classList.remove('open'); document.getElementById('createRoomModal').classList.remove('hidden'); });
+    document.getElementById('closeCreateRoom').addEventListener('click', () => document.getElementById('createRoomModal').classList.add('hidden'));
+    document.querySelectorAll('input[name="roomType"]').forEach(r => r.addEventListener('change', () => {
+        document.getElementById('passwordField').classList.toggle('hidden', r.value !== 'private' || !r.checked);
+    }));
+    document.getElementById('submitCreateRoom').addEventListener('click', () => {
+        const name = document.getElementById('roomNameInput').value.trim();
+        if (!name) { showToast('Room name required','error'); return; }
+        const type = document.querySelector('input[name="roomType"]:checked').value;
+        const pass = document.getElementById('roomPassword').value;
+        const roomRef = db.ref('rooms').push();
+        roomRef.set({
+            name, type, password: type==='private'?pass:'',
+            creatorId: currentUser.uid,
+            creatorName: currentUser.displayName || currentUser.email.split('@')[0],
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
+            sync: { isPlaying: false, currentTime: 0, updatedAt: firebase.database.ServerValue.TIMESTAMP }
+        });
+        currentRoomId = roomRef.key;
+        document.getElementById('createRoomModal').classList.add('hidden');
+        document.getElementById('roomNameInput').value = '';
+        document.getElementById('roomPassword').value = '';
+        showToast('Room created! Code: ' + roomRef.key.slice(-6).toUpperCase());
+        loadChat();
+    });
+
+    // Join Room
+    document.getElementById('joinRoomNavBtn').addEventListener('click', () => document.getElementById('joinRoomModal').classList.remove('hidden'));
+    document.getElementById('closeJoinRoom').addEventListener('click', () => document.getElementById('joinRoomModal').classList.add('hidden'));
+    document.getElementById('submitJoinRoom').addEventListener('click', () => {
+        const code = document.getElementById('joinRoomCode').value.trim();
+        if (!code) { showToast('Enter room code','error'); return; }
+        // Search rooms by key ending
+        db.ref('rooms').orderByKey().endAt(code).limitToLast(1).once('value').then(snap => {
+            let found = null;
+            snap.forEach(child => { if(child.key.endsWith(code.toLowerCase()) || child.key.slice(-6).toUpperCase()===code.toUpperCase()) found=child; });
+            if (found) {
+                currentRoomId = found.key;
+                document.getElementById('joinRoomModal').classList.add('hidden');
+                document.getElementById('joinRoomCode').value = '';
+                showToast('Joined room: ' + found.val().name);
+                loadChat();
+            } else {
+                showToast('Room not found','error');
+            }
+        });
+    });
+
+    // Custom Source
+    document.getElementById('addCustomSourceBtn').addEventListener('click', () => document.getElementById('customSourceModal').classList.remove('hidden'));
+    document.getElementById('closeCustomSource').addEventListener('click', () => document.getElementById('customSourceModal').classList.add('hidden'));
+    document.getElementById('submitCustomSource').addEventListener('click', () => {
+        const name = document.getElementById('customSourceName').value.trim();
+        const url = document.getElementById('customSourceUrl').value.trim();
+        const color = document.getElementById('customSourceColor').value.trim() || '#8b5cf6';
+        if (!name||!url) { showToast('Fill all fields','error'); return; }
+        db.ref('videoSources').push({ name, url, color, active: true, addedAt: firebase.database.ServerValue.TIMESTAMP });
+        document.getElementById('customSourceModal').classList.add('hidden');
+        document.getElementById('customSourceName').value = '';
+        document.getElementById('customSourceUrl').value = '';
+        showToast('Source added!');
+    });
+
+    // ===================== VIDEO PLAYER =====================
+    document.getElementById('playButton').addEventListener('click', togglePlay);
+    document.getElementById('playPauseBtn').addEventListener('click', togglePlay);
+    document.getElementById('volumeBtn').addEventListener('click', () => {
+        isMuted = !isMuted;
+        document.getElementById('volIcon').className = isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+        document.getElementById('volBar').style.width = isMuted ? '0%' : '75%';
+    });
+    document.getElementById('progressBar').addEventListener('click', e => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        document.getElementById('progressFill').style.width = (pos*100)+'%';
+        // Sync seek
+        if (currentRoomId) {
+            db.ref('rooms/' + currentRoomId + '/sync').update({
+                currentTime: pos * 114.38, // approx total seconds
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+    });
+    function togglePlay() {
+        isPlaying = !isPlaying;
+        const icon = isPlaying ? 'fa-pause' : 'fa-play';
+        document.getElementById('playIcon').className = 'fas ' + icon + ' text-white text-xl' + (isPlaying?'':' ml-1');
+        document.getElementById('ctrlPlayIcon').className = 'fas ' + icon;
+        document.getElementById('playOverlay').style.opacity = isPlaying ? '0' : '1';
+        if (currentRoomId) {
+            db.ref('rooms/' + currentRoomId + '/sync').update({
+                isPlaying,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+    }
+    // Listen sync
+    function listenSync() {
+        if (!currentRoomId) return;
+        db.ref('rooms/' + currentRoomId + '/sync').on('value', snap => {
+            const d = snap.val();
+            if (!d) return;
+            isPlaying = d.isPlaying || false;
+            document.getElementById('playIcon').className = 'fas ' + (isPlaying?'fa-pause':'fa-play') + ' text-white text-xl' + (isPlaying?'':' ml-1');
+            document.getElementById('ctrlPlayIcon').className = 'fas ' + (isPlaying?'fa-pause':'fa-play');
+            document.getElementById('playOverlay').style.opacity = isPlaying ? '0' : '1';
+        });
+    }
+
+    // ===================== REAL-TIME CHAT (FIREBASE) =====================
+    let chatListener = null;
+    function loadChat() {
+        if (chatListener) chatListener();
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = '';
+        if (!currentRoomId) {
+            container.innerHTML = '<p class="text-gray-500 text-sm text-center">Join or create a room to chat</p>';
+            return;
+        }
+        // Mark user as in room
+        db.ref('rooms/' + currentRoomId + '/users/' + currentUser.uid).set({
+            name: currentUser.displayName || currentUser.email.split('@')[0],
+            joinedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        db.ref('rooms/' + currentRoomId + '/users/' + currentUser.uid).onDisconnect().remove();
+
+        chatListener = db.ref('rooms/' + currentRoomId + '/messages').orderByChild('timestamp').limitToLast(100).on('value', snap => {
+            container.innerHTML = '';
+            snap.forEach(child => {
+                const m = child.val();
+                const div = document.createElement('div');
+                div.className = 'chat-message';
+                div.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="w-6 h-6 rounded-full bg-gradient-to-r ${getColor(m.userId)} flex items-center justify-center text-white font-bold text-xs mr-2 flex-shrink-0">${getInitial(m.userName)}</div>
+                        <div>
+                            <p class="text-xs text-gray-400">${m.userName} · ${timeAgo(m.timestamp)}</p>
+                            <p class="text-sm">${escapeHtml(m.text)}</p>
+                        </div>
+                    </div>`;
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        });
+        listenSync();
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    document.getElementById('sendChatBtn').addEventListener('click', sendChat);
+    document.getElementById('chatInput').addEventListener('keypress', e => { if(e.key==='Enter') sendChat(); });
+    function sendChat() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text || !currentRoomId) return;
+        // Check if blocked
+        db.ref('users/' + currentUser.uid + '/blocked').once('value').then(snap => {
+            if (snap.val() === true) {
+                showToast('You are blocked from sending messages','error');
+                return;
+            }
+            db.ref('rooms/' + currentRoomId + '/messages').push({
+                userId: currentUser.uid,
+                userName: currentUser.displayName || currentUser.email.split('@')[0],
+                text,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            input.value = '';
+        });
+    }
+
+    // ===================== SOURCES (FIREBASE REAL-TIME) =====================
+    const defaultSources = [
+        { name:'YouTube', url:'https://www.youtube.com/embed/', color:'#ef4444', icon:'fab fa-youtube', active:true },
+        { name:'MX Player', url:'https://mxplayer.in/embed/', color:'#3b82f6', icon:'fas fa-play', active:true },
+        { name:'Netflix', url:'https://netflix.com/embed/', color:'#dc2626', icon:'fas fa-film', active:true },
+        { name:'Crunchyroll', url:'https://www.crunchyroll.com/embed/', color:'#f97316', icon:'fas fa-dragon', active:true },
+        { name:'AnimeLok', url:'https://animelok.com/embed/', color:'#8b5cf6', icon:'fas fa-play-circle', active:true },
+        { name:'AnimeWorld', url:'https://animeworld.so/embed/', color:'#6366f1', icon:'fas fa-globe', active:true },
+        { name:'ToonStream', url:'https://toonstream.in/embed/', color:'#ec4899', icon:'fas fa-tv', active:true },
+        { name:'Vimeo', url:'https://player.vimeo.com/video/', color:'#06b6d4', icon:'fab fa-vimeo-v', active:true }
+    ];
+
+    function initDefaultSources() {
+        db.ref('videoSources').once('value').then(snap => {
+            if (!snap.exists()) {
+                defaultSources.forEach(s => db.ref('videoSources').push(s));
+            }
+        });
+    }
+    initDefaultSources();
+
+    function loadSources() {
+        db.ref('videoSources').once('value').then(snap => {
+            renderSources(snap);
+        });
+    }
+    function listenSources() {
+        db.ref('videoSources').on('value', snap => {
+            renderSources(snap);
+            renderAdminSources(snap);
+            document.getElementById('statSources').textContent = snap.numChildren();
+        });
+    }
+    function renderSources(snap) {
+        const container = document.getElementById('sourcesList');
+        container.innerHTML = '';
+        snap.forEach(child => {
+            const s = child.val();
+            if (!s.active) return;
+            const div = document.createElement('button');
+            div.className = 'w-full flex items-center p-2 rounded-lg hover:bg-purple-900/20 transition-colors';
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded flex items-center justify-center mr-3" style="background:${s.color}"><i class="${s.icon||'fas fa-link'} text-white text-sm"></i></div>
+                <span class="text-sm">${s.name}</span>`;
+            container.appendChild(div);
+        });
+    }
+
+    // ===================== ADMIN PANEL =====================
+    document.getElementById('adminPanelBtn').addEventListener('click', () => document.getElementById('adminPanel').classList.add('active'));
+    document.getElementById('adminMobileBtn')?.addEventListener('click', () => { document.getElementById('mobileMenu').classList.remove('open'); document.getElementById('adminPanel').classList.add('active'); });
+    document.getElementById('closeAdminPanel').addEventListener('click', () => document.getElementById('adminPanel').classList.remove('active'));
+
+    // Admin Tabs
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.admin-tab').forEach(t => { t.classList.remove('bg-purple-900/20','text-purple-400'); t.classList.add('text-gray-400'); });
+            tab.classList.add('bg-purple-900/20','text-purple-400');
+            tab.classList.remove('text-gray-400');
+            document.querySelectorAll('.admin-content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        });
+    });
+
+    // ===================== ADMIN: USER MANAGEMENT (BLOCK/UNBLOCK) =====================
+    function listenUsers() {
+        db.ref('users').on('value', snap => {
+            renderUsersTable(snap);
+            let total = 0, blocked = 0;
+            snap.forEach(child => {
+                total++;
+                if (child.val().blocked) blocked++;
+            });
+            document.getElementById('statUsers').textContent = total;
+            document.getElementById('statBlocked').textContent = blocked;
+        });
+    }
+
+    function renderUsersTable(snap) {
+        const tbody = document.getElementById('usersTableBody');
+        const noMsg = document.getElementById('noUsersMsg');
+        tbody.innerHTML = '';
+        let count = 0;
+        snap.forEach(child => {
+            const u = child.val();
+            const uid = child.key;
+            count++;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="py-3"><div class="flex items-center"><div class="w-8 h-8 rounded-full bg-gradient-to-r ${getColor(uid)} flex items-center justify-center text-white font-bold text-sm mr-3">${getInitial(u.name)}</div><span class="text-sm font-medium">${escapeHtml(u.name||'Unknown')}</span></div></td>
+                <td class="py-3 text-gray-400 text-sm">${escapeHtml(u.email||'-')}</td>
+                <td class="py-3"><span class="${u.online?'bg-green-900/30 text-green-400':'bg-gray-700/30 text-gray-400'} text-xs px-2 py-1 rounded-full">${u.online?'Online':'Offline'}</span></td>
+                <td class="py-3"><span class="${u.blocked?'blocked-badge':'unblocked-badge'} text-xs px-2 py-1 rounded-full">${u.blocked?'Blocked':'Active'}</span></td>
+                <td class="py-3 text-gray-400 text-sm">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}</td>
+                <td class="py-3">
+                    <div class="flex space-x-2">
+                        ${u.blocked
+                            ? `<button onclick="unblockUser('${uid}')" class="px-3 py-1 rounded-lg text-xs font-medium btn-success text-white"><i class="fas fa-unlock mr-1"></i>Unblock</button>`
+                            : `<button onclick="blockUser('${uid}')" class="px-3 py-1 rounded-lg text-xs font-medium btn-danger text-white"><i class="fas fa-ban mr-1"></i>Block</button>`
+                        }
+                        ${u.role!=='admin'?`<button onclick="makeAdmin('${uid}')" class="px-3 py-1 rounded-lg text-xs font-medium btn-secondary text-purple-400"><i class="fas fa-crown mr-1"></i>Admin</button>`:'<span class="text-purple-400 text-xs px-2 py-1">Admin</span>'}
+                    </div>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+        noMsg.classList.toggle('hidden', count > 0);
+    }
+
+    // User search filter
+    document.getElementById('userSearchInput').addEventListener('input', e => {
+        const q = e.target.value.toLowerCase();
+        document.querySelectorAll('#usersTableBody tr').forEach(tr => {
+            tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+
+    // Block User
+    function blockUser(uid) {
+        if (uid === currentUser.uid) { showToast("Can't block yourself",'error'); return; }
+        db.ref('users/' + uid).update({ blocked: true });
+        showToast('User blocked');
+    }
+
+    // Unblock User
+    function unblockUser(uid) {
+        db.ref('users/' + uid).update({ blocked: false });
+        showToast('User unblocked','info');
+    }
+
+    // Make Admin
+    function makeAdmin(uid) {
+        db.ref('users/' + uid).update({ role: 'admin' });
+        showToast('User promoted to admin');
+    }
+
+    // ===================== ADMIN: SOURCES MANAGEMENT =====================
+    function renderAdminSources(snap) {
+        const grid = document.getElementById('adminSourcesGrid');
+        const noMsg = document.getElementById('noSourcesMsg');
+        grid.innerHTML = '';
+        let count = 0;
+        snap.forEach(child => {
+            const s = child.val();
+            const key = child.key;
+            count++;
+            const card = document.createElement('div');
+            card.className = `bg-purple-900/10 rounded-lg p-4 border ${s.active?'border-purple-900/30':'border-red-900/30 opacity-60'}`;
+            card.innerHTML = `
+                <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 rounded flex items-center justify-center mr-3" style="background:${s.color||'#8b5cf6'}"><i class="${s.icon||'fas fa-link'} text-white"></i></div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-sm">${escapeHtml(s.name)}</h4>
+                        <p class="text-xs text-gray-400 truncate">${escapeHtml(s.url||'')}</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="${s.active?'text-green-400':'text-red-400'} text-xs">${s.active?'Active':'Inactive'}</span>
+                    <div class="flex space-x-2">
+                        <button onclick="toggleSource('${key}',${!s.active})" class="p-1.5 rounded hover:bg-purple-900/30" title="${s.active?'Disable':'Enable'}"><i class="fas ${s.active?'fa-eye-slash text-red-400':'fa-eye text-green-400'}"></i></button>
+                        <button onclick="deleteSource('${key}')" class="p-1.5 rounded hover:bg-purple-900/30" title="Delete"><i class="fas fa-trash text-red-400"></i></button>
+                    </div>
+                </div>`;
+            grid.appendChild(card);
+        });
+        noMsg.classList.toggle('hidden', count > 0);
+    }
+
+    // Admin Add Source
+    document.getElementById('adminAddSourceBtn').addEventListener('click', () => {
+        const name = document.getElementById('adminSourceName').value.trim();
+        const url = document.getElementById('adminSourceUrl').value.trim();
+        const color = document.getElementById('adminSourceColor').value.trim() || '#8b5cf6';
+        if (!name||!url) { showToast('Fill name and URL','error'); return; }
+        db.ref('videoSources').push({ name, url, color, active: true, icon: 'fas fa-link', addedAt: firebase.database.ServerValue.TIMESTAMP });
+        document.getElementById('adminSourceName').value = '';
+        document.getElementById('adminSourceUrl').value = '';
+        showToast('Source added!');
+    });
+
+    // Toggle Source Active
+    function toggleSource(key, active) {
+        db.ref('videoSources/' + key + '/active').set(active);
+        showToast(active ? 'Source enabled' : 'Source disabled', 'info');
+    }
+
+    // Delete Source
+    function deleteSource(key) {
+        if (confirm('Delete this source?')) {
+            db.ref('videoSources/' + key).remove();
+            showToast('Source deleted','info');
+        }
+    }
+
+    // ===================== ADMIN: ROOMS =====================
+    function listenRooms() {
+        db.ref('rooms').on('value', snap => {
+            renderRoomsTable(snap);
+            document.getElementById('statRooms').textContent = snap.numChildren();
+        });
+    }
+    function renderRoomsTable(snap) {
+        const tbody = document.getElementById('roomsTableBody');
+        const noMsg = document.getElementById('noRoomsMsg');
+        tbody.innerHTML = '';
+        let count = 0;
+        snap.forEach(child => {
+            const r = child.val();
+            const key = child.key;
+            count++;
+            const userCount = r.users ? Object.keys(r.users).length : 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="py-3"><div><p class="text-sm font-medium">${escapeHtml(r.name)}</p><p class="text-xs text-gray-500">#${key.slice(-6).toUpperCase()}</p></div></td>
+                <td class="py-3 text-sm text-gray-400">${escapeHtml(r.creatorName||'-')}</td>
+                <td class="py-3"><span class="${r.type==='private'?'bg-yellow-900/30 text-yellow-400':'bg-green-900/30 text-green-400'} text-xs px-2 py-1 rounded-full">${r.type||'public'}</span></td>
+                <td class="py-3 text-sm">${userCount}</td>
+                <td class="py-3"><button onclick="deleteRoom('${key}')" class="px-3 py-1 rounded-lg text-xs font-medium btn-danger text-white"><i class="fas fa-trash mr-1"></i>Delete</button></td>`;
+            tbody.appendChild(tr);
+        });
+        noMsg.classList.toggle('hidden', count > 0);
+    }
+    function deleteRoom(key) {
+        if (confirm('Delete this room?')) {
+            db.ref('rooms/' + key).remove();
+            if (currentRoomId === key) { currentRoomId = null; loadChat(); }
+            showToast('Room deleted','info');
+        }
+    }
+
+    // ===================== REACTIONS =====================
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const emoji = btn.textContent.trim();
+            const el = document.createElement('div');
+            el.className = 'reaction';
+            el.style.left = (Math.random()*70+15)+'%';
+            el.style.bottom = '25%';
+            el.textContent = emoji;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+            if (currentRoomId) {
+                db.ref('rooms/' + currentRoomId + '/reactions').push({
+                    emoji, userId: currentUser.uid,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        });
+    });
+
+    // ===================== NAV LINKS =====================
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            document.querySelectorAll('.nav-link').forEach(l => { l.classList.remove('bg-purple-900/20','text-purple-400'); });
+            link.classList.add('bg-purple-900/20','text-purple-400');
+        });
+    });
+
+    // ===================== RESPONSIVE CHECK =====================
+    function checkMobile() {
+        const isMobile = window.innerWidth <= 768;
+        document.getElementById('mobileNav').style.display = isMobile ? 'flex' : 'none';
+    }
+    window.addEventListener('resize', checkMobile);
+    checkMobile();
+    </script>
+</body>
+</html>
